@@ -1,0 +1,6 @@
+{
+  "service": {
+    "name": "pi",
+    "port": 8888
+  }
+}

@@ -1,0 +1,64 @@
+version: "3"
+services:
+  pi:
+    build: pi/
+    volumes:
+      - "./pi:/app"
+    command: [ "python", "/app/pi.py" ]
+  resource:
+    build: resource/
+    volumes:
+      - "./resource:/app"
+    command: [ "python", "/app/res.py" ]
+  go:
+    image: golang
+    volumes:
+      - "./go:/app"
+    command: [ "go", "run", "/app/server.go" ]    
+    ports:
+      - 8090:8090
+  node:
+    build: node/
+    volumes:
+      - "./node:/app"
+    command: [ "node", "/app/app.js" ]
+  sql-service:
+    image: mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=devops
+      - MYSQL_DATABASE=golf
+    volumes:
+      - ./database:/docker-entrypoint-initdb.d
+  webapp:
+    image: szatmarizoltanmit/helloworld
+    environment:
+      - DBHOST=sql-service
+    ports:
+      - "8088:8088"
+  jupyter:
+    build: jupyter/
+    ports:
+      - 8000:8000
+  nginx:
+    image: nginx
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+
+  consul:
+    image: consul
+    command: [ "agent", "-server", "-ui", "-node=server-1", "-bootstrap-expect=1", "-client=0.0.0.0" ]
+    ports:
+      - '8300:8300'
+      - '8301:8301'
+      - '8301:8301/udp'
+      - '8500:8500'
+      - '8600:8600'
+      - '8600:8600/udp'
+
+  haproxy:
+    build: haproxy
+    ports:
+      - 9999:9999
